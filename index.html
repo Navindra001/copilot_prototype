@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head><body>
+<title>Story Pilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one shell, three views (landing, parent portal, clinician portal). Light green and white, carried over from VAGUS. */
+:root{
+  --bg:#F5FBF8; --surface:#FFFFFF; --mint:#E2F5EB; --mint-2:#C6EBD9;
+  --ink:#0A3340; --ink-2:#456A75; --line:#D3E7DD;
+  --accent:#02C39A; --accent-ink:#023E4F; --teal:#027585;
+  --amber-bg:#FFF4CC; --amber-fg:#6E5200; --rose-bg:#FCE8E3; --rose-fg:#A3341F;
+  --shadow:0 1px 2px rgba(2,62,79,.06),0 8px 24px rgba(2,62,79,.07);
+  --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --body:'Figtree','Segoe UI',system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#071E26; --surface:#0D2B35; --mint:#12383F; --mint-2:#1A4B50;
+  --ink:#E6F6EF; --ink-2:#9CC0C4; --line:#1F4650;
+  --accent:#02C39A; --accent-ink:#03262F; --teal:#4FD8C3;
+  --amber-bg:#3A3210; --amber-fg:#F7DC6F; --rose-bg:#3A1E1A; --rose-fg:#F4A99A;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#071E26; --surface:#0D2B35; --mint:#12383F; --mint-2:#1A4B50;
+  --ink:#E6F6EF; --ink-2:#9CC0C4; --line:#1F4650;
+  --accent:#02C39A; --accent-ink:#03262F; --teal:#4FD8C3;
+  --amber-bg:#3A3210; --amber-fg:#F7DC6F; --rose-bg:#3A1E1A; --rose-fg:#F4A99A;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.25); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--display);line-height:1.12;margin:0;text-wrap:balance;letter-spacing:-.01em}
+p{margin:0}
+a{color:var(--teal)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1180px;margin-inline:auto;padding-inline:20px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--accent);color:var(--accent-ink);padding:8px 14px;border-radius:8px;z-index:50}
+.skip:focus{left:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;padding-block:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-family:var(--display);font-weight:700;font-size:1.2rem}
+.brand small{font-family:var(--body);font-weight:500;font-size:.72rem;color:var(--ink-2);display:block;line-height:1.1}
+.spacer{flex:1}
+.seg{display:inline-flex;background:var(--mint);border-radius:999px;padding:3px;gap:2px}
+.seg a{padding:7px 14px;border-radius:999px;text-decoration:none;color:var(--ink-2);font-weight:600;font-size:.9rem}
+.seg a[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(2,62,79,.15)}
+.demo-tag{font-size:.75rem;color:var(--ink-2)}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:12px 20px;font-weight:700;text-decoration:none;background:var(--accent);color:var(--accent-ink);min-height:44px;transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(2,195,154,.3)}
+.btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+.btn.ghost:hover{border-color:var(--teal);box-shadow:none}
+.btn.soft{background:var(--mint);color:var(--ink)}
+.btn.danger{background:var(--rose-bg);color:var(--rose-fg)}
+.btn.sm{padding:7px 12px;min-height:36px;font-size:.88rem;border-radius:10px}
+
+/* chips, pills */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:500;font-size:.92rem;min-height:38px}
+.chip[aria-pressed="true"]{background:var(--mint-2);border-color:var(--teal);color:var(--ink);font-weight:700}
+.tag{display:inline-block;font-size:.78rem;padding:2px 9px;border-radius:999px;background:var(--mint);color:var(--ink);font-weight:500}
+.tag.hit{background:var(--mint-2);font-weight:700}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;padding:3px 10px;border-radius:999px}
+.pill.requested{background:var(--amber-bg);color:var(--amber-fg)}
+.pill.confirmed{background:var(--mint-2);color:var(--ink)}
+.pill.completed{background:transparent;border:1.5px solid var(--teal);color:var(--teal)}
+.pill.declined,.pill.cancelled{background:var(--rose-bg);color:var(--rose-fg)}
+.pill.new{background:var(--accent);color:var(--accent-ink)}
+
+/* surfaces */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow);min-width:0}
+.card.flat{box-shadow:none}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.muted{color:var(--ink-2)}
+.small{font-size:.88rem}
+.eyebrow{font-size:.85rem;font-weight:600;color:var(--teal)}
+
+/* landing */
+.hero{padding-block:56px 40px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:48px;align-items:center}
+.hero h1{font-size:clamp(2.5rem,6.4vw,4.6rem);font-weight:700}
+.hero .lede{font-size:1.15rem;color:var(--ink-2);max-width:34em;margin-top:20px}
+.hero .cta{margin-top:28px}
+.three{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:8px;box-shadow:var(--shadow)}
+.three-h{padding:14px 16px 6px;font-weight:700;font-family:var(--display)}
+.voice{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;padding:14px 16px;border-top:1px solid var(--line);align-items:start}
+.voice:first-of-type{border-top:0}
+.voice b{display:block;font-size:.85rem;color:var(--teal)}
+.voice q{font-size:.98rem;quotes:none}
+.av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-family:var(--display);font-size:.9rem}
+.av.c{background:var(--mint-2)} .av.p{background:var(--amber-bg);color:var(--amber-fg)} .av.d{background:var(--accent);color:var(--accent-ink)}
+.mkl{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.68rem;color:var(--ink-2);min-width:52px;text-align:center}
+section.block{padding-block:56px}
+section.block.tint{background:var(--mint)}
+.h2{font-size:clamp(1.7rem,3.6vw,2.5rem);max-width:20em}
+.big{font-family:var(--display);font-weight:700;font-size:clamp(4rem,10vw,7rem);line-height:.9;color:var(--teal)}
+.facts{display:grid;gap:14px}
+.fact{display:flex;gap:14px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:12px}
+.fact b{font-family:var(--display);font-size:1.8rem;min-width:4.2ch;color:var(--teal)}
+.steps{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;counter-reset:s}
+.steps li{counter-increment:s;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 18px 18px 64px;position:relative}
+.steps li::before{content:counter(s);position:absolute;left:16px;top:16px;width:36px;height:36px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-family:var(--display);font-weight:700}
+.steps b{display:block;font-family:var(--display);font-size:1.05rem}
+.ticks{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:8px}
+.ticks li{padding-left:26px;position:relative}
+.ticks li::before{content:"";position:absolute;left:2px;top:.5em;width:12px;height:7px;border-left:2.5px solid var(--accent);border-bottom:2.5px solid var(--accent);transform:rotate(-45deg)}
+footer.foot{padding-block:32px;border-top:1px solid var(--line);margin-top:32px}
+
+/* portals */
+.portal{padding-block:28px 56px}
+.ph{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.ph h1{font-size:clamp(1.7rem,3.4vw,2.4rem)}
+.stepper{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+.stepper button{display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:8px 16px 8px 8px;font-weight:600}
+.stepper button .n{width:28px;height:28px;border-radius:50%;background:var(--mint);display:grid;place-items:center;font-size:.85rem}
+.stepper button[aria-current="step"]{border-color:var(--teal);background:var(--mint)}
+.stepper button[aria-current="step"] .n{background:var(--accent);color:var(--accent-ink)}
+.stepper button.done .n{background:var(--mint-2)}
+.stepper button[disabled]{opacity:.5;cursor:not-allowed}
+.two{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:start}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label,.legend{font-weight:700;font-size:.95rem}
+.field .hint{font-size:.85rem;color:var(--ink-2)}
+input[type=text],input[type=number],input[type=email],input[type=password],select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:11px 14px;min-height:46px;width:100%}
+textarea{min-height:92px;resize:vertical}
+.form-sec{display:flex;flex-direction:column;gap:12px;padding-block:18px;border-top:1px solid var(--line)}
+.form-sec:first-child{border-top:0;padding-top:0}
+.drop{display:block;border:2px dashed var(--mint-2);background:var(--mint);border-radius:16px;padding:22px;text-align:center;cursor:pointer}
+.drop.over{border-color:var(--teal);background:var(--mint-2)}
+.drop b{display:block;font-family:var(--display)}
+.check{display:flex;gap:12px;align-items:flex-start}
+.check input{width:22px;height:22px;margin-top:2px;accent-color:var(--accent);flex:none}
+.sb{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5}
+.pick{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;background:var(--ink);color:var(--bg);border-radius:16px;padding:14px 18px;box-shadow:var(--shadow)}
+.stories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.story{display:flex;flex-direction:column;gap:12px}
+.story.sel{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 35%,transparent)}
+.story h3{font-size:1.25rem}
+.band{font-weight:700;font-size:.8rem;padding:3px 10px;border-radius:999px}
+.band.b3{background:var(--accent);color:var(--accent-ink)} .band.b2{background:var(--mint-2)} .band.b1{background:var(--mint);color:var(--ink-2)}
+.umk{display:flex;gap:14px;flex-wrap:wrap}
+details.more summary{cursor:pointer;font-weight:700;color:var(--teal);padding:4px 0}
+details.more .inner{display:flex;flex-direction:column;gap:12px;padding-top:10px}
+.vq{border-left:3px solid var(--mint-2);padding-left:12px}
+.vq b{font-size:.8rem;color:var(--teal);display:block}
+.days{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}
+.day{flex:none;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:9px 14px;text-align:left;min-width:104px}
+.day b{display:block;font-family:var(--display)}
+.day span{font-size:.8rem;color:var(--ink-2)}
+.day[aria-pressed="true"]{background:var(--mint-2);border-color:var(--teal)}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;margin-top:14px}
+.slot{border:1.5px solid var(--mint-2);background:var(--mint);border-radius:12px;padding:12px 8px;font-weight:700;font-variant-numeric:tabular-nums}
+.slot small{display:block;font-weight:500;font-size:.72rem;color:var(--ink-2)}
+.slot[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.slot[aria-pressed="true"] small{color:var(--accent-ink)}
+.slot[disabled]{background:transparent;border-style:dashed;border-color:var(--line);color:var(--ink-2);cursor:not-allowed;font-weight:500;text-decoration:line-through}
+.radio{display:flex;gap:8px}
+.radio .chip{flex:1}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:.95rem}
+.kv dt{color:var(--ink-2)} .kv dd{margin:0;font-weight:600;min-width:0;overflow-wrap:anywhere}
+
+/* clinician */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:22px;overflow-x:auto}
+.tabs button{border:0;background:none;padding:12px 18px;font-weight:700;color:var(--ink-2);border-bottom:3px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.tile b{font-family:var(--display);font-size:2.2rem;display:block;line-height:1;font-variant-numeric:tabular-nums}
+.tile span{font-size:.88rem;color:var(--ink-2)}
+.tile.hot{background:var(--amber-bg);border-color:transparent}
+.tile.hot span{color:var(--amber-fg)}
+.li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.li:first-child{border-top:0}
+.when{font-variant-numeric:tabular-nums;text-align:center;background:var(--mint);border-radius:12px;padding:6px 10px;min-width:74px}
+.when b{display:block;font-family:var(--display)}
+.when span{font-size:.78rem;color:var(--ink-2)}
+.li .nm{font-weight:700}
+.sched{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+.agenda{display:flex;flex-direction:column;gap:8px}
+.ag{display:grid;grid-template-columns:64px minmax(0,1fr) auto;gap:12px;align-items:center;border:1.5px solid var(--line);border-radius:14px;padding:10px 14px;background:var(--surface)}
+.ag time{font-weight:700;font-variant-numeric:tabular-nums}
+.ag.open{background:var(--mint);border-color:var(--mint-2)}
+.ag.closed{border-style:dashed;color:var(--ink-2);background:transparent}
+.ag.booked{border-color:var(--teal)}
+.fort{overflow-x:auto}
+.fort table{border-collapse:separate;border-spacing:3px;font-size:.72rem;font-variant-numeric:tabular-nums}
+.fort th{font-weight:600;color:var(--ink-2);padding:2px 4px;text-align:center;white-space:nowrap}
+.fort td{padding:0}
+.fort button.c{width:30px;height:26px;border-radius:6px;border:1px solid var(--mint-2);background:var(--mint);font-size:.7rem;font-weight:700;padding:0}
+.fort button.c.b{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.fort button.c.x{background:repeating-linear-gradient(135deg,transparent 0 4px,var(--line) 4px 6px);border-color:var(--line)}
+.fort button.c.sel{outline:2px solid var(--ink);outline-offset:1px}
+.legend-k{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--ink-2);margin-top:10px}
+.legend-k i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-1px;background:var(--mint);border:1px solid var(--mint-2)}
+.legend-k i.b{background:var(--accent);border-color:var(--accent)} .legend-k i.x{background:repeating-linear-gradient(135deg,transparent 0 3px,var(--line) 3px 5px);border-color:var(--line)}
+.pat{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr);gap:20px;align-items:start}
+.plist{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.pi{text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;width:100%}
+.pi[aria-pressed="true"]{border-color:var(--teal);background:var(--mint)}
+.pi.off{opacity:.6}
+.doc h3{font-size:1.2rem;margin-bottom:8px}
+.sum{display:flex;flex-direction:column;gap:18px}
+.sum section{display:flex;flex-direction:column;gap:8px}
+.sum ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.todo{display:flex;flex-direction:column;gap:8px}
+.todo label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:12px}
+.todo input{width:20px;height:20px;accent-color:var(--accent);margin-top:2px;flex:none}
+.rate{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.rate fieldset{border:1px solid var(--line);border-radius:14px;padding:12px;margin:0;min-width:0}
+.rate legend{font-weight:700;padding-inline:6px}
+.rate button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:7px 10px;margin-top:6px;font-size:.88rem}
+.rate button[aria-pressed="true"]{border-color:var(--teal);background:var(--mint-2);font-weight:700}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:12px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:60;max-width:calc(100% - 32px)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.empty{border:2px dashed var(--line);border-radius:16px;padding:24px;text-align:center;color:var(--ink-2)}
+.auth-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,460px);gap:48px;align-items:center;padding-block:24px}
+.auth-h{font-size:clamp(1.9rem,4vw,2.9rem)}
+@media (max-width:900px){
+  .auth-grid{grid-template-columns:minmax(0,1fr);gap:28px}
+  .hero-grid,.two,.sched,.pat,.grid2,.stories{grid-template-columns:minmax(0,1fr)}
+  .grid3,.steps{grid-template-columns:minmax(0,1fr)}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rate{grid-template-columns:minmax(0,1fr)}
+  .hero{padding-block:32px 24px}
+}
+@media (max-width:520px){.voice{grid-template-columns:auto minmax(0,1fr)}.voice .mkl{grid-column:2;flex-direction:row;justify-content:flex-start;gap:6px}.li{grid-template-columns:auto minmax(0,1fr)}.li>:last-child{grid-column:1/-1}.demo-tag{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div id="root"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+/* ---------- constants ---------- */
+const KEY='storypilot.prototype.v1';
+const NEEDS=['Autism','Language disorder (DLD)','Speech sound difficulty','Stammer','Selective mutism','Social communication difficulty','Non-speaking or uses AAC'];
+const CONCERNS=['Anxiety','Low mood','School avoidance','Attention and focus','Anger or meltdowns','Sleep','Worries that repeat (OCD-type)','Friendships'];
+const STYLES=['Takes words literally','Needs pictures or written steps','Needs extra time to answer','Nods along when unsure','Finds eye contact hard','Sensitive to noise or light','Prefers typing or drawing','Repeats words back'];
+const GENDERS=['Girl','Boy','Non-binary','Prefer not to say'];
+const TIMES=['09:30','10:15','11:00','11:45','13:30','14:15','15:00','15:45'];
+const LV=['Not sure','Partly','Understood'];
+const CLIN={name:'Dr Amira Rahman',role:'Consultant child and adolescent psychiatrist',site:'Children’s Communication Clinic (example NHS host)'};
+
+const STORIES=[
+{id:'s1',title:'Fine was the only word I had',ages:[8,11],needs:['Autism'],concerns:['Anxiety','Worries that repeat (OCD-type)'],styles:['Takes words literally','Needs extra time to answer'],
+ blurb:'A 9-year-old answered every feeling question with “fine”. The clinician heard confidence. Nobody checked.',
+ voices:{child:'She asked how I was feeling in my body. I said fine. I did not know what she meant.',parent:'I translated it all at home afterwards. I wish I had known I could ask her to put it another way.',clinician:'She answered quickly and nodded. I took that as understanding.'},
+ u:{child:0,parent:1,clinician:2},
+ helped:['One concrete question at a time','A scale card in place of “How are you feeling?”','Saying what would happen in the hour, in order'],
+ warn:['Fast, short answers that do not change after a long explanation','“Fine” to every feeling question'],
+ tryit:['Ask “Is your tummy tight, loose or normal?” instead of “How are you feeling?”','After each topic, ask “Can you show me what I just said, in your own words?”','Wait five seconds before repeating a question']},
+{id:'s2',title:'The words went past me',ages:[10,14],needs:['Language disorder (DLD)'],concerns:['Low mood','Friendships'],styles:['Needs extra time to answer','Nods along when unsure','Needs pictures or written steps'],
+ blurb:'A 12-year-old nodded through a long explanation of the plan, then asked his mum in the car what had been decided.',
+ voices:{child:'I nodded because everyone was looking at me. Then it was all gone.',parent:'He is good at looking like he follows. In the car he asked me what the plan was.',clinician:'He seemed engaged and agreed with each step. I did not think to test it.'},
+ u:{child:0,parent:1,clinician:2},
+ helped:['Short sentences, one idea each','Drawing the plan on paper while talking','A written summary to take home'],
+ warn:['A nod that arrives before the sentence ends','Agreeing to everything, asking nothing'],
+ tryit:['Stop after every two or three sentences and ask one check question','Draw or write the three key points as you go','Ask “What will you tell Mum the plan is?”']},
+{id:'s3',title:'Listening without speaking',ages:[8,13],needs:['Selective mutism'],concerns:['Anxiety','Friendships'],styles:['Prefers typing or drawing','Needs extra time to answer'],
+ blurb:'A 10-year-old said almost nothing in the room. A drawing at the end showed she had followed all of it.',
+ voices:{child:'I heard everything. My voice would not come out. The drawing was easier.',parent:'At home she talks non-stop. I did not know how to show the clinician that.',clinician:'I was not sure how much she had taken in. Silence made it hard to tell.'},
+ u:{child:1,parent:2,clinician:1},
+ helped:['Yes or no questions first, then open ones','Offering paper, cards or a tablet to answer','No pressure to speak in the first ten minutes'],
+ warn:['Long silences read as refusal','Parent speaking for the child by default'],
+ tryit:['Say at the start that answers can be drawn, pointed to or typed','Use a choice of two before an open question','Ask the parent for one example of how she shows she understands at home']},
+{id:'s4',title:'Too bright, too loud, too long',ages:[11,16],needs:['Autism'],concerns:['Anger or meltdowns','Sleep','Anxiety'],styles:['Sensitive to noise or light','Finds eye contact hard','Takes words literally'],
+ blurb:'A 14-year-old shut down 20 minutes in. The room, not the topic, was the problem.',
+ voices:{child:'The light hummed. I could not hear what she was saying under it.',parent:'He went quiet and I knew we had lost him ten minutes before anyone else did.',clinician:'I thought he was reflecting. He had stopped taking anything in.'},
+ u:{child:1,parent:1,clinician:2},
+ helped:['Dimmed light and a quieter room','A five-minute break written on the plan','Not asking for eye contact'],
+ warn:['Sudden silence or fidgeting mid-appointment','Short answers that get shorter'],
+ tryit:['Ask before the visit what makes a room hard, and change one thing','Agree a stop signal at the start','Plan 30 minutes of content for a 45-minute slot']},
+{id:'s5',title:'My device is my voice',ages:[8,16],needs:['Non-speaking or uses AAC'],concerns:['Low mood','Friendships'],styles:['Prefers typing or drawing','Needs pictures or written steps','Needs extra time to answer'],
+ blurb:'An 11-year-old who uses an AAC app was asked three questions at once and answered none.',
+ voices:{child:'I understood. I just needed longer to find the words on my screen.',parent:'She is quick. The questions were quicker.',clinician:'The pauses were long. I could not tell if she had understood or was lost.'},
+ u:{child:2,parent:2,clinician:1},
+ helped:['Waiting for the full answer before moving on','One question per turn','Symbols and written options alongside speech'],
+ warn:['Moving on during a long pause','Asking the parent instead of the child'],
+ tryit:['Count to ten silently before rephrasing','Look at the child, not the screen or the parent','Ask how they prefer to answer before asking anything else']},
+{id:'s6',title:'Getting the words out',ages:[9,15],needs:['Stammer'],concerns:['Anxiety','School avoidance'],styles:['Needs extra time to answer'],
+ blurb:'A 13-year-old started giving one-word answers to avoid stammering. It looked like having nothing to say.',
+ voices:{child:'If I said less, I would not stammer. So I said less.',parent:'He has plenty to say. He just gets stuck.',clinician:'I read the short answers as low engagement and moved on.'},
+ u:{child:1,parent:2,clinician:2},
+ helped:['Not finishing his sentences','Telling him there was no rush','Written questions he could answer by typing'],
+ warn:['Answers that shrink over the hour','Looking away when speech gets hard'],
+ tryit:['Say “Take your time, I will wait” and mean it','Offer to swap to writing for the hard parts','Do not complete sentences or fill pauses']},
+{id:'s7',title:'Said yes, meant maybe',ages:[9,13],needs:['Social communication difficulty'],concerns:['Attention and focus','Friendships'],styles:['Nods along when unsure','Takes words literally','Repeats words back'],
+ blurb:'A 10-year-old agreed to everything and repeated the clinician’s last words. The plan fell apart at home.',
+ voices:{child:'I said yes so it would be over. I did not know what I said yes to.',parent:'He repeats the last thing you say. It sounds like agreement.',clinician:'He repeated my words back. I took it as confirmation.'},
+ u:{child:0,parent:1,clinician:2},
+ helped:['Asking him to explain, not agree','Checking one thing at a time with a picture','Naming that “yes” can mean “I do not know”'],
+ warn:['Echoing the end of your sentence','Yes to every closed question'],
+ tryit:['Replace yes/no questions with “What would you do if…?”','Say “It is fine to say I do not get it” at the start','Ask the parent how “yes” sounds when he has not understood']},
+{id:'s8',title:'Back to school, in plain words',ages:[12,16],needs:['Autism','Language disorder (DLD)'],concerns:['School avoidance','Low mood'],styles:['Needs pictures or written steps','Needs extra time to answer','Finds eye contact hard'],
+ blurb:'A 15-year-old left with a plan about “graded exposure”. His mum later put it into words he could follow.',
+ voices:{child:'Graded what? I just wanted to know what Monday looked like.',parent:'I rewrote the plan as a list. Then he understood it.',clinician:'The plan was clear to me. I did not realise the vocabulary was the barrier.'},
+ u:{child:1,parent:2,clinician:1},
+ helped:['The plan as a numbered list, in everyday words','A picture timetable for the first week','Asking him to say Monday back'],
+ warn:['Clinical terms with no plain version','Plan agreed with the parent only'],
+ tryit:['Write each step in words you would use with a friend','Give him a copy before he leaves the room','Ask him to describe Monday in his own words']}
+];
+const sById=id=>STORIES.find(s=>s.id===id);
+
+/* ---------- dates and slots ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parseIso=s=>{const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+function nextWeekdays(n){const out=[];const d=new Date();d.setHours(0,0,0,0);while(out.length<n){d.setDate(d.getDate()+1);if(d.getDay()!==0&&d.getDay()!==6)out.push(iso(d))}return out}
+const DAYS=nextWeekdays(10);
+const fmtDay=s=>parseIso(s).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+const fmtLong=s=>parseIso(s).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+const slotId=(d,t)=>d+'_'+t;
+const slotLabel=id=>{const [d,t]=id.split('_');return fmtDay(d)+', '+t};
+
+/* ---------- data: shared store (db capability), with a local fallback ---------- */
+const COLLS=['families','status','clinical','claims','closed'];
+const D={families:{},status:{},clinical:{},claims:{},closed:{}};
+let BK=[];
+const ACTIVE=['requested','confirmed','completed'];
+const store={mode:'local',uid:'me',admin:true,canWrite:true,ready:false};
+function rebuild(){
+  BK=[];
+  Object.keys(D.families).forEach(uid=>{const f=D.families[uid]||{};Object.keys(f.bookings||{}).forEach(bid=>{
+    const b=f.bookings[bid];
+    const c=(f.children||{})[b.childId]||{name:'Child',age:'',gender:'',needs:[],concerns:[],styles:[],worries:''};
+    const st=D.status[bid],cl=D.clinical[bid]||{};
+    BK.push(Object.assign({},b,{id:bid,uid:uid,parentName:f.parentName||'Parent',child:c,
+      status:b.cancelled?'cancelled':(st&&st.status)||'requested',seen:!!cl.seen,practice:cl.practice||{},ratings:cl.ratings||null}));
+  })});
+}
+const getBooking=id=>BK.find(b=>b.id===id);
+const myFam=()=>D.families[store.uid]||{parentName:'',children:{},bookings:{}};
+const myBookings=()=>BK.filter(b=>b.uid===store.uid).sort((a,b)=>a.slot<b.slot?-1:1);
+const child=x=>typeof x==='object'?x.child:(myFam().children||{})[x];
+function slotInfo(id){
+  const cl=D.claims[id];
+  if(cl){const b=BK.find(x=>x.id===cl.bid);if(!b)return{state:'booked',b:null};if(ACTIVE.includes(b.status))return{state:'booked',b:b}}
+  if(D.closed[id])return{state:'closed'};
+  return{state:'open'}
+}
+const openCount=d=>TIMES.filter(t=>slotInfo(slotId(d,t)).state==='open').length;
+
+/* example families, written by the clinic team so the schedule is not empty */
+function demoOps(){
+  const X=DAYS,now=Date.now(),ops=[];
+  const fam=(id,kids,books)=>ops.push({c:'families',id:id,data:{parentName:'Example parent',children:kids,bookings:books}});
+  const bk=(fid,bid,cid,story,slot,mode,note,status,seen,ago)=>{
+    fam.last=fam.last||{};
+    ops.push({c:'claims',id:slot,data:{bid:bid,uid:fid}});
+    if(status)ops.push({c:'status',id:bid,data:{status:status,uid:fid}});
+    if(seen)ops.push({c:'clinical',id:bid,data:{seen:true,practice:{},ratings:null}});
+  };
+  fam('demo-a',{c1:{id:'c1',name:'Maya',age:9,gender:'Girl',needs:['Autism'],concerns:['Anxiety'],styles:['Takes words literally','Needs extra time to answer'],worries:'She says fine to everything and then melts down at home.'}},
+    {'demo-b1':{childId:'c1',storyId:'s1',slot:slotId(X[0],'10:15'),mode:'In person',note:'Maya prefers a quiet room.',created:now-864e5*3}});
+  bk('demo-a','demo-b1','c1','s1',slotId(X[0],'10:15'),'In person','','confirmed',true);
+  fam('demo-b',{c2:{id:'c2',name:'Theo',age:12,gender:'Boy',needs:['Language disorder (DLD)'],concerns:['Low mood','Friendships'],styles:['Nods along when unsure','Needs pictures or written steps'],worries:'He agrees in the room and has no idea what was said afterwards.'}},
+    {'demo-b2':{childId:'c2',storyId:'s2',slot:slotId(X[1],'11:00'),mode:'Video',note:'',created:now-36e5*5}});
+  bk('demo-b','demo-b2','c2','s2',slotId(X[1],'11:00'),'Video','',null,false);
+  fam('demo-c',{c3:{id:'c3',name:'Sam',age:10,gender:'Prefer not to say',needs:['Selective mutism'],concerns:['Anxiety'],styles:['Prefers typing or drawing'],worries:'Will they think Sam is being rude by not answering?'}},
+    {'demo-b3':{childId:'c3',storyId:'s3',slot:slotId(X[2],'11:45'),mode:'In person',note:'Sam may draw rather than speak.',created:now-864e5*2}});
+  bk('demo-c','demo-b3','c3','s3',slotId(X[2],'11:45'),'In person','','confirmed',true);
+  [slotId(X[1],'15:00'),slotId(X[1],'15:45'),slotId(X[3],'09:30')].forEach(s=>ops.push({c:'closed',id:s,data:{at:now}}));
+  return ops;
+}
+
+const LKEY='storypilot.local.v2';
+function localAdapter(){
+  let data=null;try{data=JSON.parse(localStorage.getItem(LKEY))}catch(e){}
+  if(!data){data={};COLLS.forEach(c=>{data[c]={}});demoOps().forEach(o=>{data[o.c][o.id]=o.data})}
+  const subs=[];const clone=x=>JSON.parse(JSON.stringify(x));
+  const persist=()=>{try{localStorage.setItem(LKEY,JSON.stringify(data))}catch(e){}};
+  const fire=()=>subs.forEach(s=>s.cb(clone(data[s.c]||{})));
+  window.addEventListener('storage',ev=>{if(ev.key===LKEY&&ev.newValue){try{data=JSON.parse(ev.newValue);fire()}catch(e){}}});
+  return{
+    sub(c,cb){const s={c:c,cb:cb};subs.push(s);setTimeout(()=>cb(clone(data[c]||{})),0);return()=>{subs.splice(subs.indexOf(s),1)}},
+    async set(c,id,v){data[c][id]=clone(v);persist();fire()},
+    async del(c,id){delete data[c][id];persist();fire()},
+    async claim(id,v){if(data.claims[id]&&data.claims[id].uid)return false;data.claims[id]=clone(v);persist();fire();return true}
+  };
+}
+function dbAdapter(db){
+  return{
+    sub(c,cb,err){return db.collection(c).onSnapshot(s=>{const m={};s.docs.forEach(d=>{m[d.id]=d.data()});cb(m)},e=>{if(err)err(e)})},
+    async set(c,id,v){await db.collection(c).doc(id).set(v)},
+    async del(c,id){await db.collection(c).doc(id).delete()},
+    async claim(id,v){
+      const r=db.collection('claims').doc(id);
+      const l=await r.acquire({holder:String(store.uid||'viewer'),ttlMs:5000});
+      if(!l.acquired)return false;
+      const s=await r.get();
+      if(s.exists&&s.data()&&s.data().uid)return false;
+      await r.set(v);return true;
+    }
+  };
+}
+function apiAdapter(){
+  let token='';try{token=localStorage.getItem('storypilot.token')||''}catch(e){}
+  let es=null;const subs=[];const cache={};
+  const setToken=t=>{token=t||'';try{if(t)localStorage.setItem('storypilot.token',t);else localStorage.removeItem('storypilot.token')}catch(e){}};
+  function connect(){
+    if(es)es.close();
+    es=new EventSource('/api/events?token='+encodeURIComponent(token));
+    es.onmessage=ev=>{try{const st=JSON.parse(ev.data);COLLS.forEach(c=>{cache[c]=st[c]||{}});subs.forEach(s=>s.cb(cache[s.c]||{}))}catch(x){}};
+  }
+  async function call(method,url,body){
+    const r=await fetch(url,{method:method,headers:{'content-type':'application/json','x-token':token},body:body?JSON.stringify(body):undefined});
+    let j={};try{j=await r.json()}catch(x){}
+    if(!r.ok){const er=new Error(j.error||('Request failed ('+r.status+')'));er.status=r.status;er.code=r.status===403?'invalid_argument':'unavailable';throw er}
+    return j;
+  }
+  return{
+    sub(c,cb){const s={c:c,cb:cb};subs.push(s);if(!es)connect();if(cache[c])setTimeout(()=>cb(cache[c]),0);return()=>{const i=subs.indexOf(s);if(i>-1)subs.splice(i,1)}},
+    async set(c,id,v){await call('PUT','/api/doc/'+c+'/'+encodeURIComponent(id),v)},
+    async del(c,id){await call('DELETE','/api/doc/'+c+'/'+encodeURIComponent(id))},
+    async claim(id,v){try{await call('POST','/api/claim/'+encodeURIComponent(id),v);return true}catch(e){if(e.status===409)return false;throw e}},
+    async me(){if(!token)return null;try{return (await call('GET','/api/me')).user}catch(e){setToken('');return null}},
+    async signup(p){const r=await call('POST','/api/signup',p);setToken(r.token);return r.user},
+    async login(p){const r=await call('POST','/api/login',p);setToken(r.token);return r.user},
+    async logout(){try{await call('POST','/api/logout')}catch(e){}setToken('');if(es){es.close();es=null}Object.keys(cache).forEach(k=>{delete cache[k]})}
+  };
+}
+let apiA=null;
+async function initStore(){
+  let adapter=null;
+  try{
+    if(window.claude&&window.claude.use){
+      const db=await window.claude.use('db');
+      const user=await window.claude.use('user');
+      if(db&&user){
+        const id=await user.id();
+        store.admin=await user.canEdit();
+        const cw=await user.can('data.write');
+        store.uid=id;store.canWrite=!!id&&cw!==false;store.mode='shared';
+        adapter=dbAdapter(db);
+      }
+    }
+  }catch(e){adapter=null}
+  if(!adapter&&/^https?:$/.test(location.protocol)){
+    try{const r=await fetch('/api/ping');
+      if(r.ok){apiA=apiAdapter();adapter=apiA;store.mode='api'}}catch(e){apiA=null;adapter=null}
+  }
+  if(!adapter){adapter=localAdapter();store.mode='local';store.uid='me';store.admin=true;store.canWrite=true}
+  store.sub=adapter.sub;store.set=adapter.set;store.del=adapter.del;store.claim=adapter.claim;
+  if(store.mode==='api')setUser(await apiA.me());
+  if(store.mode!=='api'||store.user)startSubs();
+  store.ready=true;
+}
+let unsubs=[];
+function startSubs(){
+  stopSubs();
+  COLLS.forEach(c=>{
+    if(c==='clinical'&&store.mode==='shared'&&!store.admin)return;
+    unsubs.push(store.sub(c,m=>{D[c]=m;scheduleUpdate()},e=>{if(e&&e.code==='revoked')toast('Access to the live data was withdrawn.')}));
+  });
+}
+function stopSubs(){unsubs.forEach(u=>{try{u()}catch(x){}});unsubs=[];COLLS.forEach(c=>{D[c]={}});rebuild()}
+function setUser(u){store.user=u;store.uid=u?u.id:null;store.admin=!!u&&u.role==='clinician';store.canWrite=!!u;if(u&&!ui.draft.parentName&&u.role==='parent')ui.draft.parentName=u.name}
+
+/* ---------- ui state ---------- */
+const blank=()=>({name:'',parentName:'',age:'',gender:'',needs:[],concerns:[],styles:[],worries:'',consent:false,assent:false,file:null});
+const ui={auth:{mode:'signup',role:null,err:'',busy:false,vals:{}},view:'home',pStep:1,draft:blank(),childId:null,storyId:null,day:DAYS[0],slot:null,mode:'In person',note:'',cancelId:null,
+  clinTab:'overview',clinDay:DAYS[0],sel:null,search:'',rate:{}};
+
+/* ---------- helpers ---------- */
+const e=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function mk(l,s){s=s||22;const lab=LV[l];
+  const inner=l===2?'<circle cx="11" cy="11" r="9.5" fill="var(--accent)"/><path d="M6.8 11.4l3 3 5.4-6.2" stroke="var(--accent-ink)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
+   :l===1?'<circle cx="11" cy="11" r="9" fill="none" stroke="var(--teal)" stroke-width="2"/><path d="M11 2a9 9 0 0 0 0 18z" fill="var(--teal)"/>'
+   :'<circle cx="11" cy="11" r="9" fill="none" stroke="var(--ink-2)" stroke-width="2" stroke-dasharray="3.2 3"/>';
+  return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 22 22" role="img" aria-label="'+lab+'">'+inner+'</svg>'}
+const mkl=(l)=>'<span class="mkl">'+mk(l)+LV[l]+'</span>';
+function logo(){return '<svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><circle cx="12" cy="13" r="8" fill="var(--mint-2)"/><circle cx="22" cy="13" r="8" fill="var(--accent)" fill-opacity=".85"/><circle cx="17" cy="21" r="8" fill="var(--teal)" fill-opacity=".8"/></svg>'}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2600)}
+const tags=(a,hit)=>a.map(x=>'<span class="tag'+(hit&&hit.includes(x)?' hit':'')+'">'+e(x)+'</span>').join('');
+const statusText={requested:'Requested',confirmed:'Confirmed',completed:'Completed',declined:'Declined',cancelled:'Cancelled'};
+const pill=s=>'<span class="pill '+s+'">'+statusText[s]+'</span>';
+
+function match(st,c){
+  const age=Number(c.age);const sh={needs:st.needs.filter(x=>c.needs.includes(x)),concerns:st.concerns.filter(x=>c.concerns.includes(x)),styles:st.styles.filter(x=>c.styles.includes(x))};
+  let max=3*c.needs.length+2*c.concerns.length+2*c.styles.length+3,got=3*sh.needs.length+2*sh.concerns.length+2*sh.styles.length;
+  const inRange=age>=st.ages[0]&&age<=st.ages[1];const near=!inRange&&(age>=st.ages[0]-1&&age<=st.ages[1]+1);
+  got+=inRange?3:near?1.5:0;
+  const r=max?got/max:0;
+  return {r,band:r>=.55?3:r>=.3?2:1,shared:sh,inRange,near};
+}
+const BAND=['','Some overlap','Close','Very close'];
+
+/* ---------- views ---------- */
+function header(){
+  const v=ui.view,api=store.mode==='api',u=store.user;
+  const newN=store.admin?BK.filter(b=>!b.seen&&b.status==='requested').length:0;
+  const cur=n=>v===n?' aria-current="page"':'';
+  let links='<a href="#home"'+cur('home')+'>Home</a>',right='';
+  if(api){
+    if(u)links+=u.role==='clinician'?'<a href="#clinician"'+cur('clinician')+'>Clinician'+(newN?' <span class="pill new">'+newN+'</span>':'')+'</a>':'<a href="#parent"'+cur('parent')+'>Parent</a>';
+    right=u?'<span class="demo-tag">'+e(u.name)+'</span><button class="btn ghost sm" data-act="logout">Log out</button>'
+      :'<a class="btn ghost sm" href="#login">Log in</a><a class="btn sm" href="#signup">Sign up</a>';
+  }else{
+    links+='<a href="#parent"'+cur('parent')+'>Parent</a><a href="#clinician"'+cur('clinician')+'>Clinician'+(newN?' <span class="pill new">'+newN+'</span>':'')+'</a>';
+    right='<span class="demo-tag">'+(store.mode==='local'?'Local demo':'Live data')+'</span>';
+  }
+  return '<a class="skip" href="#main">Skip to content</a><header class="top"><div class="wrap">'
+  +'<a class="brand" href="#home">'+logo()+'<span>Story Pilot<small>Linked-accounts pilot for CAMHS</small></span></a><span class="spacer"></span>'
+  +'<nav class="seg" aria-label="Main">'+links+'</nav>'+right+'</div></header>';
+}
+function needsAuth(){return store.mode==='api'&&store.ready&&!store.user&&(ui.view==='parent'||ui.view==='clinician')}
+function authView(){
+  const a=ui.auth,v=a.vals,su=a.mode==='signup';
+  const role=a.role||(ui.view==='clinician'?'clinician':'parent');
+  if(store.mode!=='api')return '<div class="portal"><div class="wrap"><div class="card stack" style="max-width:560px"><h1 style="font-size:1.6rem">'+(store.mode==='shared'?'You are already signed in':'No login needed in this copy')+'</h1><p class="muted">'+(store.mode==='shared'?'This page uses your claude.ai account. Families are invited as Contributors and the clinic team as Editors.':'This copy runs as a local demo in one browser. Run the Node server to get accounts.')+'</p><div class="row"><a class="btn" href="#parent">Parent view</a><a class="btn ghost" href="#clinician">Clinician view</a></div></div></div></div>';
+  const fld=(id,key,label,type,ac,hint)=>'<div class="field"><label for="'+id+'">'+label+'</label><input type="'+type+'" id="'+id+'" data-auth="'+key+'" value="'+e(v[key]||'')+'" autocomplete="'+ac+'">'+(hint?'<span class="hint">'+hint+'</span>':'')+'</div>';
+  return '<div class="portal"><div class="wrap"><div class="auth-grid"><div class="stack"><h1 class="auth-h">A place for families and clinicians to prepare together.</h1><p class="muted" style="max-width:44ch">Families pick a story that sounds like their child and book a time. Clinicians see the profile and story before the first visit.</p><ul class="ticks"><li>Families see only their own children and appointments.</li><li>Clinical notes and ratings stay with the clinic team.</li><li>Use made-up details only while this is a prototype.</li></ul></div>'
+  +'<form class="card stack" id="authform" novalidate><div class="tabs" role="tablist" style="margin:0"><button type="button" role="tab" data-act="authMode" data-val="login" aria-selected="'+(!su)+'">Log in</button><button type="button" role="tab" data-act="authMode" data-val="signup" aria-selected="'+su+'">Create account</button></div>'
+  +(needsAuth()?'<p class="small muted">Log in or create an account to open the '+(ui.view==='clinician'?'clinician':'parent')+' view.</p>':'')
+  +(su?'<div><div class="legend" id="lg-role" style="margin-bottom:8px">I am a</div><div class="radio" role="group" aria-labelledby="lg-role">'+[['parent','Parent or carer'],['clinician','Clinician']].map(r=>'<button type="button" class="chip" data-act="authRole" data-val="'+r[0]+'" aria-pressed="'+(role===r[0])+'">'+r[1]+'</button>').join('')+'</div></div>'+fld('a-name','name','Your name','text','name'):'')
+  +fld('a-email','email','Email','email','email')
+  +'<div class="field"><label for="a-pass">Password</label><input type="password" id="a-pass" autocomplete="'+(su?'new-password':'current-password')+'">'+(su?'<span class="hint">At least 8 characters.</span>':'')+'</div>'
+  +(su&&role==='clinician'?fld('a-code','code','Clinic invite code','text','off','Given to you by your clinic lead.'):'')
+  +(a.err?'<p class="small" role="alert" style="color:var(--rose-fg);background:var(--rose-bg);padding:10px 12px;border-radius:10px">'+e(a.err)+'</p>':'')
+  +'<button type="submit" class="btn"'+(a.busy?' disabled':'')+'>'+(a.busy?'One moment…':su?'Create account':'Log in')+'</button>'
+  +'<p class="small muted">'+(su?'Already have an account? ':'New here? ')+'<a href="#'+(su?'login':'signup')+'">'+(su?'Log in':'Create an account')+'</a></p></form></div></div></div>';
+}
+
+function footer(){return '<footer class="foot"><div class="wrap row" style="justify-content:space-between"><p class="small muted" style="max-width:62ch">Prototype for the NIHR RfPB outline (draft for discussion). Stories, quotes, patients and the clinician are made up. Please do not enter real children\u2019s details. This is not clinical advice.</p>'+(store.admin&&store.ready?'<div class="row"><button class="btn ghost sm" data-act="addDemo">Add example families</button><button class="btn ghost sm" data-act="removeDemo">Remove example families</button></div>':'')+'</div></footer>'}
+const clinName=()=>store.mode==='api'&&store.user&&store.user.role==='clinician'?store.user.name:CLIN.name;
+const docName=()=>store.mode==='api'?'the clinic team':CLIN.name;
+function loading(){return '<div class="portal"><div class="wrap"><div class="empty">Connecting to the clinic\u2026</div></div></div>'}
+function notice(){if(store.canWrite)return '';return '<div class="card flat" style="margin-bottom:18px;background:var(--amber-bg);border-color:transparent;color:var(--amber-fg)"><b>Read-only access.</b> '+(store.uid?'Ask the clinic for Contributor access to request appointments.':'Sign in to claude.ai to request appointments.')+'</div>'}
+function locked(){return '<div class="portal"><div class="wrap"><div class="card stack" style="max-width:560px"><h1 style="font-size:1.6rem">The clinician view is for the clinic team</h1><p class="muted">'+(store.mode==='api'?'Your account is a family account, so you can book from the parent view. Clinicians sign up with the clinic invite code.':'You are signed in as a family member, so you can book from the parent view. Clinicians need Editor access to this page.')+'</p><div><a class="btn" href="#parent">Go to the parent view</a></div></div></div></div>'}
+
+function home(){
+  const prev=STORIES.slice(0,3).map(s=>'<article class="card story"><h3>'+e(s.title)+'</h3><p class="muted">'+e(s.blurb)+'</p><div class="chips">'+tags(s.needs.concat(s.concerns.slice(0,1)))+'</div><div class="umk"><span class="mkl">'+mk(s.u.child)+'Child</span><span class="mkl">'+mk(s.u.parent)+'Parent</span><span class="mkl">'+mk(s.u.clinician)+'Clinician</span></div></article>').join('');
+  return '<div class="hero"><div class="wrap hero-grid"><div>'
+  +'<p class="eyebrow">For children aged 8 to 16 with speech, language, communication or autism-related needs</p>'
+  +'<h1 style="margin-top:14px">A nod is not understanding.</h1>'
+  +'<p class="lede">Story Pilot helps a child get more from a first CAMHS appointment. The family picks a real, anonymised story that sounds like their child. The clinician reads a one-page summary before the visit and adapts.</p>'
+  +'<div class="row cta"><a class="btn" href="#parent">I am a parent or carer</a><a class="btn ghost" href="#clinician">I am a clinician</a></div></div>'
+  +'<div class="three" aria-label="One appointment, three views"><div class="three-h">One appointment, three views</div>'
+  +'<div class="voice"><span class="av c" aria-hidden="true">C</span><div><b>Child</b><q>I nodded, but I did not get what it meant.</q></div>'+mkl(0)+'</div>'
+  +'<div class="voice"><span class="av p" aria-hidden="true">P</span><div><b>Parent</b><q>I had to explain it again at home.</q></div>'+mkl(1)+'</div>'
+  +'<div class="voice"><span class="av d" aria-hidden="true">D</span><div><b>Clinician</b><q>I thought they understood.</q></div>'+mkl(2)+'</div>'
+  +'<p class="small muted" style="padding:10px 16px 12px">Shown side by side, never merged. Illustrative quotes, not study data.</p></div></div></div>'
+  +'<section class="block tint"><div class="wrap grid2" style="align-items:center"><div><p class="eyebrow">The gap</p><h2 class="h2" style="margin-top:8px">Children nod along. Parents end up translating.</h2><p class="muted" style="margin-top:16px;max-width:48ch">Tools exist to record a child’s needs. None records what the child, parent and clinician each took from the same appointment, so clinicians have few real examples of what helped.</p></div>'
+  +'<div class="card flat"><div class="big">54%</div><p>of 61 CAMHS caregivers agreed communication was a barrier (Livermore, Botting and Botting, 2026).</p><div class="facts" style="margin-top:18px"><div class="fact"><b>70.5%</b><span>of parents who had disclosed an autism diagnosis reported no reasonable adjustments (Ashworth et al., 2025).</span></div><div class="fact"><b>53.6%</b><span>said their child was not at all comfortable explaining difficulties to the professional (Ashworth et al., 2025).</span></div></div></div></div></section>'
+  +'<section class="block"><div class="wrap"><p class="eyebrow">How it works in this prototype</p><h2 class="h2" style="margin-top:8px">From a profile to a prepared clinician, in six steps</h2><ol class="steps">'
+  +[['Tell us about your child','Age, needs, how they communicate best. Type it in or upload a profile.'],['Pick the closest story','Stories are ranked by how much they resemble your child.'],['Choose a slot','You only see times the clinician has opened.'],['Clinician gets a summary','What helped, warning signs, and prompts to try.'],['Clinician adapts and checks','Using the story, then asking the child to say it back.'],['All three rate it','Did the child feel understood? Child, parent and clinician each answer.']].map(x=>'<li><b>'+x[0]+'</b><span class="muted">'+x[1]+'</span></li>').join('')+'</ol></div></section>'
+  +'<section class="block tint"><div class="wrap"><div class="ph"><div><p class="eyebrow">Story library</p><h2 class="h2" style="margin-top:8px">Short, anonymised, checked by the people in them</h2></div><a class="btn" href="#parent">Find a story for my child</a></div><div class="grid3">'+prev+'</div><p class="small muted" style="margin-top:14px">Filled circle: understood. Half: partly. Dashed: not sure. These are written for the prototype; real stories come from Phase 1a interviews.</p></div></section>'
+  +'<section class="block"><div class="wrap grid2"><div class="card"><h3>For families</h3><ul class="ticks"><li>See which story is closest to your child, and why.</li><li>Book only from times the clinician has opened.</li><li>Your child’s details go to the clinician only with your consent and your child’s assent.</li></ul><a class="btn" style="margin-top:18px" href="#parent">Open the parent view</a></div>'
+  +'<div class="card"><h3>For clinicians</h3><ul class="ticks"><li>Control which slots families can see.</li><li>Read the child’s profile and chosen story before the first visit.</li><li>Record what the child, parent and clinician each understood.</li></ul><a class="btn" style="margin-top:18px" href="#clinician">Open the clinician view</a></div></div></section>'
+  +'<section class="block tint"><div class="wrap grid3"><div><h3>Safe by design</h3><p class="muted" style="margin-top:8px">Local-only language model. Parent consent plus child assent. Stories checked by the people in them.</p></div><div><h3>Honest claims</h3><p class="muted" style="margin-top:8px">The pilot tests feasibility and acceptability. It does not claim stories cause better adaptation.</p></div><div><h3>Still to confirm</h3><p class="muted" style="margin-top:8px">Chief Investigator, SLT, CAMHS, qualitative, statistics and PPI team, budget and IP, MHRA status.</p></div></div></section>';
+}
+
+/* ----- parent ----- */
+function parentSteps(){
+  const okProfile=!!ui.childId;const okStory=!!ui.storyId;
+  const items=[[1,'Your child'],[2,'Choose a story'],[3,'Book a slot'],[4,'My appointments']];
+  return '<div class="stepper" role="group" aria-label="Steps">'+items.map(([n,l])=>{
+    const dis=(n===2&&!okProfile)||(n===3&&!(okProfile&&okStory));
+    const done=(n===1&&okProfile)||(n===2&&okStory);
+    return '<button data-act="step" data-val="'+n+'"'+(ui.pStep===n?' aria-current="step"':'')+(dis?' disabled':'')+(done?' class="done"':'')+'><span class="n">'+(done&&ui.pStep!==n?'✓':n)+'</span>'+l+'</button>'}).join('')+'</div>';
+}
+function chipGroup(list,opts,label){return '<div class="form-sec"><div class="legend" id="lg-'+list+'">'+label+'</div><div class="chips" role="group" aria-labelledby="lg-'+list+'">'+opts.map(o=>'<button type="button" class="chip" data-act="chip" data-list="'+list+'" data-val="'+e(o)+'" aria-pressed="'+ui.draft[list].includes(o)+'">'+e(o)+'</button>').join('')+'</div></div>'}
+function parentProfile(){
+  const d=ui.draft;
+  const saved=Object.values(myFam().children||{});
+  const ages=[];for(let a=5;a<=17;a++)ages.push('<option value="'+a+'"'+(String(d.age)===String(a)?' selected':'')+'>'+a+'</option>');
+  return (saved.length?'<div class="card flat" style="margin-bottom:20px"><div class="legend" id="lg-saved">Use a saved profile</div><div class="chips" role="group" aria-labelledby="lg-saved" style="margin-top:10px">'+saved.map(c=>'<button type="button" class="chip" data-act="usechild" data-id="'+e(c.id)+'">'+e(c.name)+', '+e(c.age)+'</button>').join('')+'</div></div>':'')+'<div class="two"><form class="card" id="pform" novalidate>'
+  +'<div class="form-sec"><div class="grid2" style="gap:16px"><div class="field"><label for="f-name">Child’s first name or initials</label><input type="text" id="f-name" data-field="name" value="'+e(d.name)+'" autocomplete="off" placeholder="For example Aarav"></div>'
+  +'<div class="field"><label for="f-age">Age</label><select id="f-age" data-field="age"><option value="">Choose</option>'+ages.join('')+'</select><span class="hint">The pilot is planned for ages 8 to 16 (to be confirmed).</span></div></div>'
+  +'<div class="field"><label for="f-parent">Your name</label><input type="text" id="f-parent" data-field="parentName" value="'+e(d.parentName)+'" autocomplete="off" placeholder="Parent or carer"></div></div>'
+  +'<div class="form-sec"><div class="legend" id="lg-g">Gender</div><div class="chips" role="group" aria-labelledby="lg-g">'+GENDERS.map(g=>'<button type="button" class="chip" data-act="gender" data-val="'+g+'" aria-pressed="'+(d.gender===g)+'">'+g+'</button>').join('')+'</div><span class="hint muted small">Shared with the clinician. Not used to choose stories.</span></div>'
+  +chipGroup('needs',NEEDS,'Speech, language or communication needs (choose any)')
+  +chipGroup('concerns',CONCERNS,'What brings your child to CAMHS (choose any)')
+  +chipGroup('styles',STYLES,'How your child communicates best (choose any)')
+  +'<div class="form-sec"><div class="field"><label for="f-worry">What worries you most about the first appointment?</label><textarea id="f-worry" data-field="worries" placeholder="Optional. The clinician will read this.">'+e(d.worries)+'</textarea></div></div>'
+  +'<div class="form-sec"><label class="check"><input type="checkbox" id="f-consent" data-field="consent"'+(d.consent?' checked':'')+'><span>I agree to share this profile and my chosen story with my child’s clinician.</span></label><label class="check"><input type="checkbox" id="f-assent" data-field="assent"'+(d.assent?' checked':'')+'><span>My child knows about this and is happy for it to be shared.</span></label></div>'
+  +'<div class="row"><button type="submit" class="btn" data-act="saveProfile">Find matching stories</button></div></form>'
+  +'<aside class="stack"><div class="card"><h3 style="margin-bottom:6px">Upload a profile instead</h3><p class="muted small" style="margin-bottom:14px">Drop in a text, JSON or CSV file. We read age, needs and concerns from it. PDF and Word files are attached for the clinician but not read here.</p>'
+  +'<label class="drop" id="dz" for="f-file"><b>Choose a file or drop it here</b><span class="small muted">.txt  .md  .json  .csv  .pdf  .docx</span></label><input class="sr" type="file" id="f-file" data-act-change="file" accept=".txt,.md,.json,.csv,.pdf,.docx">'
+  +(d.file?'<p class="small" style="margin-top:12px"><b>'+e(d.file.name)+'</b> '+e(d.file.msg)+'</p>':'')
+  +'</div><div class="card flat"><h3 style="margin-bottom:6px">Just exploring?</h3><p class="muted small" style="margin-bottom:12px">Fill the form with an example child.</p><button class="btn soft" data-act="example">Use example profile</button></div></aside></div>';
+}
+function parentStories(){
+  const c=child(ui.childId);
+  const ranked=STORIES.map(s=>({s,m:match(s,c)})).sort((a,b)=>b.m.r-a.m.r);
+  const card=({s,m},i)=>{
+    const all=m.shared.needs.concat(m.shared.concerns,m.shared.styles);
+    return '<article class="card story'+(ui.storyId===s.id?' sel':'')+'"><div class="row" style="justify-content:space-between">'+(i<3?'<span class="band b'+m.band+'">'+BAND[m.band]+'</span>':'<span class="band b'+m.band+'">'+BAND[m.band]+'</span>')+'<span class="small muted">Ages '+s.ages[0]+' to '+s.ages[1]+(m.inRange?' · fits '+e(c.name):'')+'</span></div>'
+    +'<h3>'+e(s.title)+'</h3><p class="muted">'+e(s.blurb)+'</p>'
+    +'<div class="chips">'+tags(s.needs.concat(s.concerns,s.styles),all)+'</div>'
+    +'<p class="small muted">'+(all.length?'Shared with '+e(c.name)+': '+all.length+' of the tags above (highlighted).':'No tags shared. Age is the closest link.')+'</p>'
+    +'<div class="umk"><span class="mkl">'+mk(s.u.child)+'Child</span><span class="mkl">'+mk(s.u.parent)+'Parent</span><span class="mkl">'+mk(s.u.clinician)+'Clinician</span></div>'
+    +'<details class="more"><summary>Read the three accounts</summary><div class="inner">'
+    +['child','parent','clinician'].map(k=>'<div class="vq"><b>'+k[0].toUpperCase()+k.slice(1)+'</b>'+e(s.voices[k])+'</div>').join('')
+    +'<div><b>What helped</b><ul class="small" style="margin:6px 0 0;padding-left:18px">'+s.helped.map(x=>'<li>'+e(x)+'</li>').join('')+'</ul></div></div></details>'
+    +'<button class="btn'+(ui.storyId===s.id?'':' soft')+'" data-act="story" data-id="'+s.id+'" aria-pressed="'+(ui.storyId===s.id)+'">'+(ui.storyId===s.id?'Chosen. Change?':'Choose this story')+'</button></article>'};
+  const sel=ui.storyId&&sById(ui.storyId);
+  return '<div class="ph"><div><h2 style="font-size:1.7rem">Stories closest to '+e(c.name)+'</h2><p class="muted" style="margin-top:6px;max-width:60ch">Ranked by shared needs, concerns, communication style and age. Pick the one that sounds most like your child.</p></div><button class="btn ghost sm" data-act="step" data-val="1">Edit profile</button></div>'
+  +'<div class="stories">'+ranked.map(card).join('')+'</div>'
+  +(sel?'<div class="sb" style="margin-top:20px"><div class="pick"><span><b>Chosen:</b> '+e(sel.title)+'</span><button class="btn" data-act="step" data-val="3">Continue to book a slot</button></div></div>':'');
+}
+function parentBook(){
+  const c=child(ui.childId),s=sById(ui.storyId);
+  const days=DAYS.map(d=>{const n=openCount(d);return '<button class="day" data-act="day" data-val="'+d+'" aria-pressed="'+(ui.day===d)+'"><b>'+fmtDay(d)+'</b><span>'+(n?n+' open':'Full')+'</span></button>'}).join('');
+  const slots=TIMES.map(t=>{const id=slotId(ui.day,t),st=slotInfo(id).state;const off=st!=='open';
+    return '<button class="slot" data-act="slot" data-val="'+id+'" aria-pressed="'+(ui.slot===id)+'"'+(off?' disabled':'')+'>'+t+'<small>'+(off?'Not available':'45 min')+'</small></button>'}).join('');
+  return '<div class="two"><div class="card"><h2 style="font-size:1.4rem">Pick a time</h2><p class="muted small" style="margin:4px 0 14px">Showing times '+e(docName())+' has opened. They update when the clinician changes them.</p>'
+  +'<div class="days" role="group" aria-label="Choose a day">'+days+'</div><h3 style="margin-top:18px;font-size:1.05rem">'+fmtLong(ui.day)+'</h3><div class="slots" role="group" aria-label="Times">'+slots+'</div></div>'
+  +'<aside class="card stack"><h3>Your request</h3><dl class="kv"><dt>Child</dt><dd>'+e(c.name)+', '+e(c.age)+'</dd><dt>Story</dt><dd>'+e(s.title)+'</dd><dt>Time</dt><dd>'+(ui.slot?e(slotLabel(ui.slot)):'Not chosen yet')+'</dd><dt>Where</dt><dd>'+e(CLIN.site)+'</dd></dl>'
+  +'<div><div class="legend" id="lg-m" style="margin-bottom:8px">How would you like to attend?</div><div class="radio" role="group" aria-labelledby="lg-m">'+['In person','Video'].map(m=>'<button class="chip" data-act="mode" data-val="'+m+'" aria-pressed="'+(ui.mode===m)+'">'+m+'</button>').join('')+'</div></div>'
+  +'<div class="field"><label for="f-note">Anything the clinician should know?</label><textarea id="f-note" data-field="note" placeholder="Optional">'+e(ui.note)+'</textarea></div>'
+  +'<button class="btn" data-act="request"'+(ui.slot?'':' disabled')+'>Request appointment</button></aside></div>';
+}
+function parentAppts(){
+  const mine=myBookings();
+  const nextTxt={requested:'Waiting for the clinician to confirm. You will see it here as soon as they do.',confirmed:'Confirmed. The clinician has your child’s profile and story.',completed:'This consultation has taken place.',declined:'The clinician could not offer this time. Please choose another slot.',cancelled:'You cancelled this appointment. The time is open again.'};
+  const list=mine.length?mine.map(b=>{const c=child(b),s=sById(b.storyId);const [d,t]=b.slot.split('_');
+    return '<article class="card"><div class="li" style="border:0;padding:0"><div class="when"><b>'+t+'</b><span>'+fmtDay(d)+'</span></div><div><div class="nm">'+e(c.name)+' · '+e(b.mode)+'</div><div class="muted small">Story: '+e(s.title)+'</div><p class="small" style="margin-top:6px">'+nextTxt[b.status]+'</p></div><div class="stack" style="align-items:flex-end;gap:8px">'+pill(b.status)
+    +(b.status==='requested'||b.status==='confirmed'?(ui.cancelId===b.id?'<button class="btn danger sm" data-act="cancel" data-id="'+b.id+'">Yes, cancel it</button>':'<button class="btn ghost sm" data-act="cancel" data-id="'+b.id+'">Cancel</button>'):'')+'</div></div></article>'}).join('')
+   :'<div class="empty"><p><b>No appointments yet.</b></p><p class="small" style="margin-top:6px">Add your child’s details, choose a story and request a slot.</p></div>';
+  return '<div class="ph"><h2 style="font-size:1.7rem">My appointments</h2><button class="btn soft" data-act="another">Add another child</button></div><div class="stack">'+list+'</div>'
+  +'<div class="card flat" style="margin-top:20px"><h3 style="margin-bottom:6px">Before the visit</h3><ul class="ticks"><li>Read your chosen story with your child, if they want to.</li><li>Tell your child who they will meet and how long it takes.</li><li>Bring anything your child uses to communicate.</li></ul></div>';
+}
+function parent(){
+  if(!store.ready)return loading();
+  if(store.mode==='api'&&store.user&&store.user.role==='clinician')return '<div class="portal"><div class="wrap"><div class="card stack" style="max-width:560px"><h1 style="font-size:1.6rem">This view is for families</h1><p class="muted">You are logged in as a clinician. Your schedule and patients are in the clinician view.</p><div><a class="btn" href="#clinician">Open the clinician view</a></div></div></div></div>'
+  if(ui.childId&&!child(ui.childId))ui.childId=null;
+  const step=ui.pStep;
+  let body=step===1?parentProfile():step===2?(ui.childId?parentStories():parentProfile()):step===3?(ui.childId&&ui.storyId?parentBook():parentStories()):parentAppts();
+  return '<div class="portal"><div class="wrap"><div class="ph"><div><p class="eyebrow">Parent or carer</p><h1 style="margin-top:6px">Hello'+((myFam().parentName||ui.draft.parentName)?', '+e(myFam().parentName||ui.draft.parentName):'')+'</h1></div></div>'+notice()+parentSteps()+body+'</div></div>';
+}
+
+/* ----- clinician ----- */
+const upcoming=()=>BK.filter(b=>ACTIVE.includes(b.status)).sort((a,b)=>a.slot<b.slot?-1:1);
+function row(b,actions){const c=child(b),s=sById(b.storyId);const [d,t]=b.slot.split('_');
+  return '<div class="li"><div class="when"><b>'+t+'</b><span>'+fmtDay(d)+'</span></div><div style="min-width:0"><div class="nm">'+e(c.name)+', '+e(c.age)+' '+(!b.seen?'<span class="pill new">New</span>':'')+'</div><div class="small muted">'+e(s.title)+' · '+e(b.mode)+'</div></div><div class="row" style="gap:8px">'+(actions||'')+'</div></div>'}
+function clinOverview(){
+  const req=BK.filter(b=>b.status==='requested').sort((a,b)=>a.slot<b.slot?-1:1);
+  const wk=DAYS.slice(0,5);const week=upcoming().filter(b=>wk.includes(b.slot.split('_')[0])&&b.status!=='completed');
+  const nOpen=DAYS.reduce((n,d)=>n+openCount(d),0);
+  const view=id=>'<button class="btn ghost sm" data-act="patient" data-id="'+id+'">Open</button>';
+  return '<div class="tiles"><div class="tile'+(req.length?' hot':'')+'"><b>'+req.length+'</b><span>Awaiting your reply</span></div><div class="tile"><b>'+week.length+'</b><span>Consultations this week</span></div><div class="tile"><b>'+BK.filter(b=>ACTIVE.includes(b.status)&&b.storyId).length+'</b><span>Families who chose a story</span></div><div class="tile"><b>'+nOpen+'</b><span>Open slots, next two weeks</span></div></div>'
+  +'<div class="grid2"><section class="card"><h2 style="font-size:1.3rem">Needs your reply</h2>'+(req.length?req.map(b=>row(b,'<button class="btn sm" data-act="confirm" data-id="'+b.id+'">Confirm</button><button class="btn ghost sm" data-act="decline" data-id="'+b.id+'">Decline</button>'+view(b.id))).join(''):'<div class="empty" style="margin-top:12px">No requests waiting. New ones from families appear here.</div>')+'</section>'
+  +'<section class="card"><h2 style="font-size:1.3rem">Coming up</h2>'+(upcoming().filter(b=>b.status==='confirmed').length?upcoming().filter(b=>b.status==='confirmed').map(b=>row(b,view(b.id))).join(''):'<div class="empty" style="margin-top:12px">No confirmed consultations yet.</div>')+'</section></div>';
+}
+function fortnight(){
+  const head='<tr><th></th>'+DAYS.map(d=>'<th>'+parseIso(d).toLocaleDateString('en-GB',{weekday:'short'})+'<br>'+parseIso(d).getDate()+'</th>').join('')+'</tr>';
+  const rows=TIMES.map(t=>'<tr><th>'+t+'</th>'+DAYS.map(d=>{const i=slotInfo(slotId(d,t));const cls=i.state==='booked'?'b':i.state==='closed'?'x':'';
+    return '<td><button class="c '+cls+(ui.clinDay===d?' sel':'')+'" data-act="cday" data-val="'+d+'" aria-label="'+fmtDay(d)+' '+t+' '+i.state+'">'+(i.b?e(child(i.b).name[0]):'')+'</button></td>'}).join('')+'</tr>').join('');
+  return '<div class="fort"><table>'+head+rows+'</table></div><div class="legend-k"><span><i></i>Open to families</span><span><i class="b"></i>Booked</span><span><i class="x"></i>Closed</span></div>';
+}
+function clinSchedule(){
+  const d=ui.clinDay;
+  const days=DAYS.map(x=>'<button class="day" data-act="cday" data-val="'+x+'" aria-pressed="'+(d===x)+'"><b>'+fmtDay(x)+'</b><span>'+openCount(x)+' open</span></button>').join('');
+  const ag=TIMES.map(t=>{const id=slotId(d,t),i=slotInfo(id);
+    if(i.state==='booked'&&!i.b)return '<div class="ag booked"><time>'+t+'</time><span>Booked</span><span></span></div>';
+    if(i.state==='booked'){const c=child(i.b);return '<div class="ag booked"><time>'+t+'</time><div style="min-width:0"><b>'+e(c.name)+', '+e(c.age)+'</b> '+pill(i.b.status)+'<div class="small muted">'+e(sById(i.b.storyId).title)+'</div></div><button class="btn ghost sm" data-act="patient" data-id="'+i.b.id+'">Open</button></div>'}
+    if(i.state==='closed')return '<div class="ag closed"><time>'+t+'</time><span>Closed. Families cannot see this time.</span><button class="btn ghost sm" data-act="slotToggle" data-val="'+id+'">Open slot</button></div>';
+    return '<div class="ag open"><time>'+t+'</time><span>Open. Families can request this time.</span><button class="btn ghost sm" data-act="slotToggle" data-val="'+id+'">Close slot</button></div>'}).join('');
+  return '<div class="sched"><section class="card"><div class="days" role="group" aria-label="Choose a day">'+days+'</div><div class="ph" style="margin:16px 0 12px"><h2 style="font-size:1.3rem">'+fmtLong(d)+'</h2><div class="row"><button class="btn ghost sm" data-act="openDay">Open all free</button><button class="btn ghost sm" data-act="closeDay">Close all free</button></div></div><div class="agenda">'+ag+'</div></section>'
+  +'<aside class="card"><h3 style="margin-bottom:10px">Next two weeks</h3>'+fortnight()+'</aside></div>';
+}
+function plistHTML(){
+  const q=ui.search.trim().toLowerCase();
+  const list=BK.slice().sort((a,b)=>a.slot<b.slot?-1:1).filter(b=>{const c=child(b);return !q||(c.name+' '+sById(b.storyId).title+' '+c.needs.join(' ')).toLowerCase().includes(q)});
+  if(!list.length)return '<div class="empty">No patients match.</div>';
+  return list.map(b=>{const c=child(b);const [d,t]=b.slot.split('_');
+    return '<button class="pi'+(['declined','cancelled'].includes(b.status)?' off':'')+'" data-act="patient" data-id="'+b.id+'" aria-pressed="'+(ui.sel===b.id)+'"><div class="row" style="justify-content:space-between"><b>'+e(c.name)+', '+e(c.age)+'</b><span>'+(!b.seen?'<span class="pill new">New</span> ':'')+pill(b.status)+'</span></div><span class="small muted">'+fmtDay(d)+', '+t+' · '+e(b.mode)+'</span><span class="chips">'+tags(c.needs.slice(0,2))+'</span></button>'}).join('');
+}
+function rateBlock(b){
+  const r=ui.rate[b.id]||b.ratings||{};
+  const who=[['child','Child'],['parent','Parent'],['clinician','Clinician']];
+  const vals=who.map(w=>r[w[0]]);const all=vals.every(v=>v!=null);const differ=all&&new Set(vals).size>1;
+  if(b.status==='completed'&&b.ratings){return '<div class="umk">'+who.map(w=>'<span class="mkl" style="flex-direction:row;gap:8px;font-size:.9rem">'+mk(b.ratings[w[0]])+w[1]+': '+LV[b.ratings[w[0]]]+'</span>').join('')+'</div>'+(new Set(who.map(w=>b.ratings[w[0]])).size>1?'<p class="small" style="margin-top:8px"><b>The three views differ.</b> Keep them side by side. They are the point.</p>':'<p class="small muted" style="margin-top:8px">All three agree.</p>')}
+  return '<div class="rate">'+who.map(w=>'<fieldset><legend>'+w[1]+'</legend>'+[2,1,0].map(v=>'<button type="button" data-act="rate" data-id="'+b.id+'" data-who="'+w[0]+'" data-val="'+v+'" aria-pressed="'+(r[w[0]]===v)+'">'+mk(v,18)+LV[v]+'</button>').join('')+'</fieldset>').join('')+'</div>'
+   +(differ?'<p class="small" style="margin-top:10px"><b>The three views differ.</b> They stay separate in the record.</p>':'')
+   +'<div class="row" style="margin-top:12px"><button class="btn" data-act="saveRate" data-id="'+b.id+'"'+(all?'':' disabled')+'>Save and mark completed</button></div>';
+}
+function patientDoc(b){
+  const c=child(b),s=sById(b.storyId),m=match(s,c);const [d,t]=b.slot.split('_');
+  const all=m.shared.needs.concat(m.shared.concerns,m.shared.styles);
+  const acts=(b.status==='requested'?'<button class="btn sm" data-act="confirm" data-id="'+b.id+'">Confirm</button><button class="btn danger sm" data-act="decline" data-id="'+b.id+'">Decline</button>':'')
+    +'<button class="btn ghost sm" data-act="copy" data-id="'+b.id+'">Copy summary</button>';
+  return '<article class="card doc sum"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h2 style="font-size:1.6rem">'+e(c.name)+', '+e(c.age)+'</h2><p class="muted">'+e(c.gender||'Gender not shared')+' · requested by '+e(b.parentName||'parent')+'</p></div><div class="stack" style="align-items:flex-end;gap:8px">'+pill(b.status)+'</div></div>'
+  +'<div class="row" style="gap:8px">'+acts+'</div>'
+  +'<section><h3>Appointment</h3><dl class="kv"><dt>When</dt><dd>'+fmtLong(d)+', '+t+' (45 min)</dd><dt>Where</dt><dd>'+e(b.mode)+'</dd>'+(b.note?'<dt>Note</dt><dd>'+e(b.note)+'</dd>':'')+'</dl></section>'
+  +'<section><h3>Child at a glance</h3><div class="chips">'+tags(c.needs.concat(c.concerns))+'</div>'+(c.styles.length?'<p class="small muted">Communicates best with:</p><div class="chips">'+tags(c.styles)+'</div>':'')+(c.worries?'<div class="vq"><b>Parent’s worry</b>'+e(c.worries)+'</div>':'')+'</section>'
+  +'<section><h3>Story the family chose</h3><p><b>'+e(s.title)+'</b> <span class="band b'+m.band+'">'+BAND[m.band]+' match</span></p><p class="muted">'+e(s.blurb)+'</p>'+(all.length?'<p class="small">Shared with this child: '+e(all.join(', '))+'.</p>':'')
+   +'<div class="umk">'+['child','parent','clinician'].map(k=>'<span class="mkl">'+mk(s.u[k])+k[0].toUpperCase()+k.slice(1)+'</span>').join('')+'</div>'
+   +['child','parent','clinician'].map(k=>'<div class="vq"><b>'+k[0].toUpperCase()+k.slice(1)+'</b>'+e(s.voices[k])+'</div>').join('')+'</section>'
+  +'<section><h3>What helped</h3><ul>'+s.helped.map(x=>'<li>'+e(x)+'</li>').join('')+'</ul></section>'
+  +'<section><h3>Warning signs</h3><ul>'+s.warn.map(x=>'<li>'+e(x)+'</li>').join('')+'</ul></section>'
+  +'<section><h3>Try this in the room</h3><div class="todo">'+s.tryit.concat(['Ask the child to tell you, in their own way, what happens next']).map((x,i)=>'<label><input type="checkbox" data-act-change="practice" data-id="'+b.id+'" data-val="'+i+'"'+(b.practice[i]?' checked':'')+'><span>'+e(x)+'</span></label>').join('')+'</div></section>'
+  +(b.status==='confirmed'||b.status==='completed'?'<section><h3>After the consultation: did each person feel understood?</h3>'+rateBlock(b)+'</section>':'')
+  +'</article>';
+}
+function clinPatients(){
+  const b=BK.find(x=>x.id===ui.sel);
+  return '<div class="pat"><section><div class="field"><label for="f-search">Search patients</label><input type="text" id="f-search" data-field="search" placeholder="Name, story or need" value="'+e(ui.search)+'" autocomplete="off"></div><div class="plist" id="plist">'+plistHTML()+'</div></section><section id="pdoc">'+(b?patientDoc(b):'<div class="empty"><p><b>Select a patient</b></p><p class="small" style="margin-top:6px">Their profile, chosen story and one-page summary appear here.</p></div>')+'</section></div>';
+}
+function clinician(){
+  if(!store.ready)return loading();
+  if(!store.admin)return locked();
+  const h=new Date().getHours();const g=h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+  const newN=store.admin?BK.filter(b=>!b.seen&&b.status==='requested').length:0;
+  const tabs=[['overview','Overview'],['schedule','Schedule'],['patients','Patients']];
+  return '<div class="portal"><div class="wrap"><div class="ph"><div><p class="eyebrow">'+e(CLIN.site)+'</p><h1 style="margin-top:6px">'+g+', '+e(clinName())+'</h1>'+(store.mode==='api'?'':'<p class="muted">'+e(CLIN.role)+' (example clinician)</p>')+'</div></div>'
+  +'<div class="tabs" role="tablist">'+tabs.map(([k,l])=>'<button role="tab" data-act="ctab" data-val="'+k+'" aria-selected="'+(ui.clinTab===k)+'">'+l+(k==='patients'&&newN?' <span class="pill new">'+newN+'</span>':'')+'</button>').join('')+'</div>'
+  +(ui.clinTab==='overview'?clinOverview():ui.clinTab==='schedule'?clinSchedule():clinPatients())+'</div></div>';
+}
+
+function render(){
+  let focusKey=render.fk;render.fk=null;
+  const main=ui.view==='auth'||needsAuth()?authView():ui.view==='home'?home():ui.view==='parent'?parent():clinician();
+  document.getElementById('root').innerHTML=header()+'<main id="main">'+main+'</main>'+footer();
+  if(focusKey){const el=[...document.querySelectorAll('[data-act]')].find(n=>keyOf(n)===focusKey);if(el)el.focus({preventScroll:true})}
+}
+const keyOf=n=>n.getAttribute('data-act')+'|'+(n.dataset.list||'')+'|'+(n.dataset.val||n.dataset.id||'')+'|'+(n.dataset.who||'');
+
+/* ---------- actions ---------- */
+function route(){
+  const h=location.hash.slice(1);
+  if(h==='login'||h==='signup'){ui.view='auth';ui.auth.mode=h;ui.auth.err=''}
+  else ui.view=['home','parent','clinician'].includes(h)?h:'home';
+  render();window.scrollTo(0,0);
+}
+const toggle=(a,v)=>{const i=a.indexOf(v);i>-1?a.splice(i,1):a.push(v)};
+function validateProfile(){
+  const d=ui.draft;
+  if(!d.name.trim())return 'Add your child’s first name or initials.';
+  if(!d.age)return 'Choose your child’s age.';
+  if(!d.needs.length&&!d.concerns.length&&!d.styles.length)return 'Choose at least one need, concern or communication style so we can match a story.';
+  if(!d.consent||!d.assent)return 'Please tick both consent boxes to continue.';
+  return '';
+}
+const canW=()=>{if(!store.canWrite){toast(store.uid?'You have read-only access. Ask for Contributor access to save changes.':'Sign in to save changes.');return false}return true};
+const adm=()=>{if(!store.admin){toast('Only the clinic team can do this.');return false}return true};
+const errMsg=e=>e&&e.code==='invalid_argument'?'You do not have permission to change this.':'Could not save. Check your connection and try again.';
+let chain=Promise.resolve();
+const queue=fn=>{chain=chain.then(fn).catch(e=>{toast(errMsg(e))});return chain};
+function put(c,id,v){if(v===null)delete D[c][id];else D[c][id]=v;rebuild();render();return queue(()=>v===null?store.del(c,id):store.set(c,id,v))}
+function famEdit(fn){
+  const cur=JSON.parse(JSON.stringify(D.families[store.uid]||{parentName:'',children:{},bookings:{}}));
+  cur.children=cur.children||{};cur.bookings=cur.bookings||{};fn(cur);
+  D.families[store.uid]=cur;rebuild();
+  return queue(()=>store.set('families',store.uid,cur));
+}
+const A={
+  step(t){ui.pStep=Number(t.dataset.val);render();window.scrollTo(0,0)},
+  chip(t){toggle(ui.draft[t.dataset.list],t.dataset.val);render()},
+  gender(t){ui.draft.gender=ui.draft.gender===t.dataset.val?'':t.dataset.val;render()},
+  example(){ui.draft=Object.assign(blank(),{name:'Aarav',parentName:'Priya',age:'10',gender:'Boy',needs:['Autism','Social communication difficulty'],concerns:['Anxiety','School avoidance'],styles:['Takes words literally','Needs extra time to answer','Nods along when unsure'],worries:'He says yes to everything and then cannot tell me what was agreed.',consent:true,assent:true});render();toast('Example profile loaded')},
+  usechild(t){ui.childId=t.dataset.id;ui.storyId=null;ui.pStep=2;render();window.scrollTo(0,0)},
+  saveProfile(t,ev){ev.preventDefault();const m=validateProfile();if(m){toast(m);return}if(!canW())return;
+    const d=ui.draft;const id=ui.childId||('c'+Date.now().toString(36));
+    famEdit(f=>{f.parentName=d.parentName.trim()||f.parentName||'Parent';f.children[id]={id:id,name:d.name.trim(),age:Number(d.age),gender:d.gender,needs:d.needs.slice(),concerns:d.concerns.slice(),styles:d.styles.slice(),worries:d.worries.trim()}});
+    ui.childId=id;ui.pStep=2;render();window.scrollTo(0,0)},
+  story(t){ui.storyId=ui.storyId===t.dataset.id?null:t.dataset.id;render()},
+  day(t){ui.day=t.dataset.val;ui.slot=null;render()},
+  slot(t){ui.slot=t.dataset.val;render()},
+  mode(t){ui.mode=t.dataset.val;render()},
+  async request(){
+    if(!ui.slot||!canW())return;const slot=ui.slot;const bid='b'+Date.now().toString(36);
+    try{
+      const old=D.claims[slot];if(old){const ob=BK.find(x=>x.id===old.bid);if(ob&&!ACTIVE.includes(ob.status))await store.del('claims',slot)}
+      const ok=await store.claim(slot,{bid:bid,uid:store.uid,at:Date.now()});
+      if(!ok){toast('That time was just taken. Please pick another.');ui.slot=null;render();return}
+      famEdit(f=>{f.bookings[bid]={childId:ui.childId,storyId:ui.storyId,slot:slot,mode:ui.mode,note:ui.note.trim(),created:Date.now()}});
+      ui.slot=null;ui.note='';ui.pStep=4;render();window.scrollTo(0,0);toast('Requested. The clinic can see it now.');
+    }catch(e){toast(errMsg(e))}
+  },
+  cancel(t){const id=t.dataset.id;if(ui.cancelId!==id){ui.cancelId=id;render.fk=keyOf(t);render();return}
+    const b=getBooking(id);if(!b||!canW())return;ui.cancelId=null;
+    famEdit(f=>{if(f.bookings[id])f.bookings[id].cancelled=true});
+    if(D.claims[b.slot]&&D.claims[b.slot].bid===id){delete D.claims[b.slot];queue(()=>store.del('claims',b.slot))}
+    rebuild();render();toast('Appointment cancelled')},
+  another(){ui.draft=blank();ui.childId=null;ui.storyId=null;ui.slot=null;ui.pStep=1;render();window.scrollTo(0,0)},
+  ctab(t){ui.clinTab=t.dataset.val;render()},
+  cday(t){ui.clinDay=t.dataset.val;ui.clinTab='schedule';render()},
+  slotToggle(t){if(!adm())return;const id=t.dataset.val;const closing=!D.closed[id];put('closed',id,closing?{at:Date.now()}:null);toast(closing?'Slot closed. Families no longer see it.':'Slot opened. Families can now book it.')},
+  openDay(){if(!adm())return;TIMES.forEach(x=>{const id=slotId(ui.clinDay,x);if(D.closed[id])put('closed',id,null)});toast('All free slots opened')},
+  closeDay(){if(!adm())return;TIMES.forEach(x=>{const id=slotId(ui.clinDay,x);if(slotInfo(id).state==='open')put('closed',id,{at:Date.now()})});toast('All free slots closed')},
+  patient(t){const b=getBooking(t.dataset.id);if(!b)return;ui.sel=b.id;ui.clinTab='patients';
+    if(!b.seen&&store.admin)put('clinical',b.id,Object.assign({},D.clinical[b.id]||{},{seen:true}));else render();window.scrollTo(0,0)},
+  confirm(t){if(!adm())return;const b=getBooking(t.dataset.id);if(!b)return;
+    put('status',b.id,{status:'confirmed',uid:b.uid,at:Date.now()});
+    if(!b.seen)put('clinical',b.id,Object.assign({},D.clinical[b.id]||{},{seen:true}));
+    toast('Confirmed. The parent can see this now.')},
+  decline(t){if(!adm())return;const b=getBooking(t.dataset.id);if(!b)return;
+    put('status',b.id,{status:'declined',uid:b.uid,at:Date.now()});
+    if(D.claims[b.slot]&&D.claims[b.slot].bid===b.id)put('claims',b.slot,null);
+    if(!b.seen)put('clinical',b.id,Object.assign({},D.clinical[b.id]||{},{seen:true}));
+    toast('Declined. The slot is open again.')},
+  rate(t){const id=t.dataset.id;const b=getBooking(id);ui.rate[id]=Object.assign({},ui.rate[id]||(b&&b.ratings)||{});ui.rate[id][t.dataset.who]=Number(t.dataset.val);render.fk=keyOf(t);render()},
+  saveRate(t){if(!adm())return;const b=getBooking(t.dataset.id);if(!b)return;
+    put('clinical',b.id,Object.assign({},D.clinical[b.id]||{},{seen:true,ratings:ui.rate[b.id]}));
+    put('status',b.id,{status:'completed',uid:b.uid,at:Date.now()});toast('Saved. All three views recorded.')},
+  copy(t){const b=getBooking(t.dataset.id);if(!b)return;const c=child(b),s=sById(b.storyId);
+    const txt=[c.name+', '+c.age+' ('+c.gender+')','Needs: '+c.needs.join(', '),'Concerns: '+c.concerns.join(', '),'Communicates best: '+c.styles.join(', '),'Story: '+s.title,'What helped: '+s.helped.join('; '),'Warning signs: '+s.warn.join('; '),'Try: '+s.tryit.join('; ')].join('\n');
+    try{navigator.clipboard.writeText(txt).then(()=>toast('Summary copied'),()=>toast('Copy was blocked. Select the text instead.'))}catch(x){toast('Copy was blocked. Select the text instead.')}},
+  authMode(t){ui.auth.mode=t.dataset.val;ui.auth.err='';if(ui.view==='auth')location.hash=t.dataset.val;else render()},
+  authRole(t){ui.auth.role=t.dataset.val;ui.auth.err='';render()},
+  async auth(){
+    const a=ui.auth,v=a.vals,su=a.mode==='signup';const role=a.role||(ui.view==='clinician'?'clinician':'parent');
+    const pass=(document.getElementById('a-pass')||{}).value||'';const email=(v.email||'').trim(),name=(v.name||'').trim(),code=(v.code||'').trim();
+    let err='';
+    if(su&&name.length<2)err='Enter your name.';
+    else if(!/^\S+@\S+\.\S+$/.test(email))err='Enter a valid email address.';
+    else if(su&&pass.length<8)err='Use at least 8 characters for your password.';
+    else if(!su&&!pass)err='Enter your password.';
+    else if(su&&role==='clinician'&&!code)err='Enter the clinic invite code.';
+    if(err){a.err=err;render();return}
+    a.busy=true;a.err='';render();
+    try{
+      const u=su?await apiA.signup({name:name,email:email,password:pass,role:role,code:code}):await apiA.login({email:email,password:pass});
+      a.busy=false;a.vals={};a.role=null;setUser(u);startSubs();ui.touched=false;
+      const to=u.role==='clinician'?'#clinician':'#parent';
+      if(location.hash===to)route();else location.hash=to;
+      toast('Welcome, '+u.name);
+    }catch(x){a.busy=false;a.err=x.message||'Something went wrong. Try again.';render()}
+  },
+  async logout(){await apiA.logout();setUser(null);stopSubs();ui.draft=blank();ui.childId=null;ui.storyId=null;ui.slot=null;ui.sel=null;ui.pStep=1;ui.touched=false;ui.view='home';if(location.hash==='#home')route();else location.hash='#home';toast('Logged out')},
+  addDemo(){if(!adm())return;const ops=demoOps();ops.forEach(o=>{D[o.c][o.id]=o.data});rebuild();render();
+    queue(async()=>{for(const o of ops)await store.set(o.c,o.id,o.data)});toast('Example families added')},
+  removeDemo(){if(!adm())return;const ops=demoOps();ops.forEach(o=>{delete D[o.c][o.id]});
+    Object.keys(D.claims).forEach(k=>{if(D.claims[k]&&String(D.claims[k].uid).indexOf('demo-')===0)delete D.claims[k]});
+    rebuild();render();queue(async()=>{for(const o of ops)await store.del(o.c,o.id)});toast('Example families removed')}
+};
+const C={
+  practice(t){const id=t.dataset.id;const cur=Object.assign({seen:true},D.clinical[id]||{});cur.practice=Object.assign({},cur.practice||{});cur.practice[t.dataset.val]=t.checked;D.clinical[id]=cur;queue(()=>store.set('clinical',id,cur))},
+  file(t){const f=t.files&&t.files[0];if(f)readFile(f)}
+};
+document.addEventListener('click',ev=>{const t=ev.target.closest('[data-act]');if(!t||!A[t.dataset.act])return;
+  if(t.dataset.act!=='cancel'&&ui.cancelId){ui.cancelId=null}
+  ui.touched=true;
+  if(!render.fk&&t.dataset.act!=='saveProfile')render.fk=keyOf(t);
+  A[t.dataset.act](t,ev)});
+document.addEventListener('submit',ev=>{ev.preventDefault();if(ev.target.id==='authform')A.auth();else A.saveProfile(null,ev)});
+document.addEventListener('input',ev=>{const t=ev.target;if(t.dataset&&t.dataset.auth){ui.auth.vals[t.dataset.auth]=t.value;return}const f=t.dataset&&t.dataset.field;if(!f)return;
+  if(f==='search'){ui.search=t.value;const p=document.getElementById('plist');if(p)p.innerHTML=plistHTML();return}
+  if(f==='note'){ui.note=t.value;return}
+  ui.draft[f]=t.type==='checkbox'?t.checked:t.value});
+document.addEventListener('change',ev=>{const t=ev.target;
+  if(t.dataset.field==='age'||t.dataset.field==='consent'||t.dataset.field==='assent'){ui.draft[t.dataset.field]=t.type==='checkbox'?t.checked:t.value;return}
+  const c=t.dataset.actChange;if(c&&C[c])C[c](t)});
+document.addEventListener('dragover',ev=>{const z=ev.target.closest&&ev.target.closest('#dz');if(z){ev.preventDefault();z.classList.add('over')}});
+document.addEventListener('dragleave',ev=>{const z=ev.target.closest&&ev.target.closest('#dz');if(z)z.classList.remove('over')});
+document.addEventListener('drop',ev=>{const z=ev.target.closest&&ev.target.closest('#dz');if(!z)return;ev.preventDefault();z.classList.remove('over');const f=ev.dataTransfer.files&&ev.dataTransfer.files[0];if(f)readFile(f)});
+
+/* ---------- profile upload ---------- */
+const KW={
+  needs:[['Autism',/autis|\basd\b/],['Language disorder (DLD)',/\bdld\b|language disorder|developmental language/],['Speech sound difficulty',/speech sound|articulation/],['Stammer',/stammer|stutter/],['Selective mutism',/selective mutism/],['Social communication difficulty',/social communication/],['Non-speaking or uses AAC',/\baac\b|non-?speaking|non-?verbal/]],
+  concerns:[['Anxiety',/anxi/],['Low mood',/low mood|depress/],['School avoidance',/school (avoid|refus)|emotionally based school/],['Attention and focus',/adhd|attention|focus/],['Anger or meltdowns',/meltdown|anger|angry/],['Sleep',/sleep/],['Worries that repeat (OCD-type)',/\bocd\b|obsess|compuls/],['Friendships',/friend|bully/]],
+  styles:[['Takes words literally',/literal/],['Needs pictures or written steps',/visual|picture|written/],['Needs extra time to answer',/extra time|processing/],['Nods along when unsure',/nods|nodd/],['Finds eye contact hard',/eye contact/],['Sensitive to noise or light',/sensory|noise|bright light/],['Prefers typing or drawing',/typing|draw/],['Repeats words back',/echolal|repeats/]]};
+function readFile(f){
+  const d=ui.draft;
+  if(/\.(txt|md|json|csv)$/i.test(f.name)||(f.type||'').startsWith('text/')||f.type==='application/json'){
+    const r=new FileReader();
+    r.onload=()=>{const text=String(r.result).slice(0,20000);const low=text.toLowerCase();let n=0;
+      ['needs','concerns','styles'].forEach(k=>KW[k].forEach(([lab,re])=>{if(re.test(low)&&!d[k].includes(lab)){d[k].push(lab);n++}}));
+      const am=low.match(/\bage[d]?\s*[:=]?\s*"?(\d{1,2})\b/)||low.match(/(\d{1,2})[\s-]*(?:years?[\s-]*old|yo\b)/);if(am&&am[1]>=5&&am[1]<=17){d.age=am[1];n++}
+      const gm=low.match(/\b(girl|boy|non-binary)\b/);if(gm){d.gender=gm[1]==='girl'?'Girl':gm[1]==='boy'?'Boy':'Non-binary';n++}
+      const nm=text.match(/name["']?\s*[:=]\s*["']?([A-Za-z]{2,20})/i);if(nm&&!d.name){d.name=nm[1];n++}
+      d.file={name:f.name,msg:n?'Read '+n+' details into the form. Please check them.':'Read, but no recognisable details found. Fill the form by hand.'};
+      render();toast(n?'Profile read. Check the details.':'No details recognised')};
+    r.onerror=()=>{d.file={name:f.name,msg:'Could not read this file.'};render()};
+    r.readAsText(f);
+  }else{d.file={name:f.name,msg:'Attached for the clinician. This prototype cannot read this file type, so fill the form by hand.'};render();toast('File attached')}
+}
+
+/* ---------- live updates ---------- */
+let known=new Set(),primed=false,upT=0;
+function isTyping(){const a=document.activeElement;return !!a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.type!=='checkbox'&&a.type!=='file'}
+function scheduleUpdate(){
+  if(upT)return;
+  upT=requestAnimationFrame(()=>{upT=0;rebuild();
+    const ids=new Set(BK.filter(b=>b.status==='requested').map(b=>b.id));
+    if(primed&&store.admin)ids.forEach(id=>{if(!known.has(id))toast('New booking request from a family')});
+    known=ids;
+    if(!ui.touched&&ui.view==='parent'&&myBookings().length)ui.pStep=4;
+    if(isTyping()){ui.dirty=true;return}
+    render();
+  });
+}
+document.addEventListener('focusout',()=>{if(ui.dirty){ui.dirty=false;setTimeout(()=>{if(!isTyping())render()},0)}});
+window.addEventListener('hashchange',route);
+route();
+initStore().then(()=>{setTimeout(()=>{primed=true},2500);render()});
+
+})();
+</script>
+
+</body></html>
